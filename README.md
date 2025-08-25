@@ -20,13 +20,13 @@ A comprehensive TypeScript/JavaScript client library for GridDB Web API with ful
 ## Installation
 
 ```bash
-npm install @griddb/client-lib
+npm install @junwatu/griddb-client
 ```
 
 or
 
 ```bash
-yarn add @griddb/client-lib
+yarn add @junwatu/griddb-client
 ```
 
 ## Quick Start
@@ -44,7 +44,7 @@ GRIDDB_PASSWORD=admin
 ### 2. Basic Usage
 
 ```typescript
-import { GridDB } from '@griddb/client-lib';
+import { GridDB } from '@junwatu/griddb-client';
 
 // Initialize the client
 const griddb = new GridDB({
@@ -90,7 +90,7 @@ console.log(users);
 ### Initialization
 
 ```typescript
-import { GridDB, GridDBConfig } from '@griddb/client-lib';
+import { GridDB, GridDBConfig } from '@junwatu/griddb-client';
 
 const config: GridDBConfig = {
   griddbWebApiUrl: 'http://localhost:8080/griddb/v2',
@@ -250,7 +250,7 @@ const result = await griddb.executeTql(
 #### ID Generation
 
 ```typescript
-import { IdGeneratorFactory } from '@griddb/client-lib';
+import { IdGeneratorFactory } from '@junwatu/griddb-client';
 
 // Random integer ID (1-10000)
 const randomId = IdGeneratorFactory.random();
@@ -271,7 +271,7 @@ const shortId = IdGeneratorFactory.short(8);
 #### Data Transformation
 
 ```typescript
-import { blobToBase64, base64ToBlob } from '@griddb/client-lib';
+import { blobToBase64, base64ToBlob } from '@junwatu/griddb-client';
 
 // Convert Blob to base64 for storage
 const base64 = await blobToBase64(imageBlob);
@@ -332,7 +332,7 @@ if (result) {
 ### Error Handling
 
 ```typescript
-import { GridDBError } from '@griddb/client-lib';
+import { GridDBError } from '@junwatu/griddb-client';
 
 try {
   await griddb.insert({
@@ -368,7 +368,7 @@ import {
   DeleteOptions,
   QueryResult,
   BatchOperationResult
-} from '@griddb/client-lib';
+} from '@junwatu/griddb-client';
 ```
 
 ## Environment Variables
@@ -423,4 +423,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Support
 
-For issues and questions, please use the [GitHub Issues](https://github.com/yourusername/griddb-client-lib/issues) page.
+For issues and questions, please use the [GitHub Issues](https://github.com/junwatu/griddb-client/issues) page.
