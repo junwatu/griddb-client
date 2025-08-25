@@ -48,3 +48,7 @@ temp/
 # Lock files (optional, uncomment if you don't want to commit lock files)
 # package-lock.json
 # yarn.lock
+
+# Test files with credentials
+test-*.ts
+utils/check-ip.ts

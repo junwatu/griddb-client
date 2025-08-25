@@ -8,6 +8,10 @@ import { GridDBRow, GridDBValue, SelectOptions, GridDBQuery } from '../types';
  * Transform object row to array format for GridDB
  */
 export function transformRowToArray(row: any): any[] {
+  if (!row) {
+    return [];
+  }
+  
   if (Array.isArray(row)) {
     return row;
   }
@@ -20,6 +24,10 @@ export function transformRowToArray(row: any): any[] {
  * Transform array row to object format
  */
 export function transformArrayToRow(array: any[], columns: string[]): GridDBRow {
+  if (!array || !columns) {
+    return {};
+  }
+  
   const row: GridDBRow = {};
   
   columns.forEach((col, index) => {
@@ -88,6 +96,10 @@ export function toGridDBValue(value: any): GridDBValue {
   }
   
   if (value instanceof Date) {
+    // Check for invalid date
+    if (isNaN(value.getTime())) {
+      return null;
+    }
     return value.toISOString();
   }
   
@@ -171,17 +183,10 @@ export function parseConnectionString(connectionString: string): {
  * Convert Blob to base64 string (async)
  */
 export async function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64 = reader.result as string;
-      // Remove data URL prefix
-      const base64Data = base64.split(',')[1];
-      resolve(base64Data);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
+  // For Node.js environment, we need to handle Blob differently
+  // Since we're in Node.js, just convert Blob to Buffer then to base64
+  const buffer = Buffer.from(await blob.arrayBuffer());
+  return buffer.toString('base64');
 }
 
 /**

@@ -1,53 +1,68 @@
 {
-  "name": "@griddb/client-lib",
-  "version": "1.0.0",
-  "description": "A TypeScript client library for GridDB Web API with full CRUD operations support",
+  "name": "@junwatu/griddb-client",
+  "version": "1.0.0-beta.1",
+  "description": "A modern TypeScript client for GridDB Web API with full CRUD operations, cloud support, and comprehensive testing",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "clean": "rm -rf dist",
-    "test": "jest",
+    "clean": "rm -rf dist coverage",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "test:connection": "ts-node test-connection.ts",
+    "test:integration": "ts-node test-integration.ts",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write \"src/**/*.ts\"",
-    "prepublishOnly": "npm run clean && npm run build",
+    "prepublishOnly": "npm run clean && npm run test && npm run build",
     "example": "ts-node examples/basic-usage.ts"
   },
   "keywords": [
     "griddb",
+    "griddb-client",
+    "griddb-cloud",
     "database",
     "nosql",
+    "time-series",
+    "iot",
     "client",
     "typescript",
     "crud",
-    "web-api"
+    "web-api",
+    "sdk"
   ],
-  "author": "",
+  "author": "Equan P. (@junwatu)",
   "license": "MIT",
   "devDependencies": {
+    "@faker-js/faker": "^10.0.0",
     "@types/jest": "^29.5.11",
     "@types/node": "^20.10.5",
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/ui": "^3.2.4",
     "eslint": "^8.56.0",
+    "happy-dom": "^18.0.1",
     "jest": "^29.7.0",
     "prettier": "^3.1.1",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
     "dotenv": "^16.3.1"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/griddb-client-lib.git"
+    "url": "https://github.com/junwatu/griddb-client.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/griddb-client-lib/issues"
+    "url": "https://github.com/junwatu/griddb-client/issues"
   },
-  "homepage": "https://github.com/yourusername/griddb-client-lib#readme",
+  "homepage": "https://github.com/junwatu/griddb-client#readme",
   "files": [
     "dist",
     "README.md",

@@ -1,4 +1,8 @@
-# GridDB Client Library
+# @junwatu/griddb-client
+
+[![npm version](https://badge.fury.io/js/%40junwatu%2Fgriddb-client.svg)](https://www.npmjs.com/package/@junwatu/griddb-client)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A comprehensive TypeScript/JavaScript client library for GridDB Web API with full CRUD operations support.
 

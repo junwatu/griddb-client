@@ -8,6 +8,7 @@ export * from './types';
 
 // Export core client
 export { GridDBClient } from './core/client';
+export { GridDBCloudClient } from './core/cloud-client';
 
 // Export CRUD operations
 export { CRUDOperations } from './operations/crud';

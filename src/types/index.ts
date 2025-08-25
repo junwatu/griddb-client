@@ -8,10 +8,16 @@ export interface GridDBConfig {
   username: string;
   password: string;
   timeout?: number;
+  useSSL?: boolean;
   retryAttempts?: number;
   retryDelay?: number;
 }
 
+export interface GridDBCloudConfig extends GridDBConfig {
+  cluster: string;
+  database: string;
+  cloudRegion?: string;
+}
 // Container types
 export type GridDBColumnType = 
   | 'BOOL' 

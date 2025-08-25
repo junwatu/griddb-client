@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Config files
+*.config.js
+*.config.ts
+
+# Declaration files
+*.d.ts
+
+# Examples might have different rules
+examples/*.js
+
+# Test files (optional - remove if you want to lint tests)
+# tests/
+# *.test.ts
+# *.spec.ts

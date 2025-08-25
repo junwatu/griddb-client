@@ -6,7 +6,6 @@
 import {
   GridDBConfig,
   GridDBError,
-  GridDBResponse,
   Logger,
   ClientOptions
 } from '../types';
@@ -198,8 +197,8 @@ export class GridDBClient {
   /**
    * List all containers
    */
-  public async listContainers(): Promise<string[]> {
-    const response = await this.get<{ container_names: string[] }>('/containers');
+  public async listContainers(limit: number = 100): Promise<string[]> {
+    const response = await this.get<{ container_names: string[] }>(`/containers?limit=${limit}`);
     return response.container_names || [];
   }
 

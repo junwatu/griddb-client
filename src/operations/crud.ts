@@ -10,10 +10,8 @@ import {
   UpdateOptions,
   DeleteOptions,
   SelectOptions,
-  GridDBColumn,
   GridDBQuery,
   QueryResult,
-  GridDBError,
   GridDBRow,
   BatchOperationResult,
   ContainerInfo
@@ -69,6 +67,7 @@ export class CRUDOperations {
     const rows = Array.isArray(data) ? data : [data];
     const transformedRows = rows.map(row => transformRowToArray(row));
     
+    // Use POST for insert, PUT for update
     const method = updateIfExists ? 'PUT' : 'POST';
     await this.client.request(`/containers/${containerName}/rows`, {
       method,
