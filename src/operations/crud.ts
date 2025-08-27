@@ -14,11 +14,14 @@ import {
   QueryResult,
   GridDBRow,
   BatchOperationResult,
-  ContainerInfo
+  ContainerInfo,
+  GridDBColumn
 } from '../types';
 import { transformRowToArray, transformArrayToRow, buildSelectQuery } from '../utils/transformers';
 
 export class CRUDOperations {
+  private schemaCache = new Map<string, ContainerInfo>();
+
   constructor(private client: GridDBClient) {}
 
   /**
@@ -62,11 +65,12 @@ export class CRUDOperations {
    * Insert data into container
    */
   async insert<T = GridDBRow>(options: InsertOptions<T>): Promise<void> {
-    const { containerName, data, updateIfExists = false } = options;
-    
+    const { containerName, data, updateIfExists = false, schema } = options;
+
+    const columns = schema || (await this.getContainerSchema(containerName));
     const rows = Array.isArray(data) ? data : [data];
-    const transformedRows = rows.map(row => transformRowToArray(row));
-    
+    const transformedRows = rows.map(row => transformRowToArray(row, columns));
+
     // Use POST for insert, PUT for update
     const method = updateIfExists ? 'PUT' : 'POST';
     await this.client.request(`/containers/${containerName}/rows`, {
@@ -232,6 +236,14 @@ export class CRUDOperations {
    */
   async getSchema(containerName: string): Promise<ContainerInfo> {
     return this.client.getContainerInfo(containerName);
+  }
+
+  private async getContainerSchema(containerName: string): Promise<GridDBColumn[]> {
+    if (!this.schemaCache.has(containerName)) {
+      const schema = await this.getSchema(containerName);
+      this.schemaCache.set(containerName, schema);
+    }
+    return this.schemaCache.get(containerName)?.columns || [];
   }
 
   /**

@@ -15,7 +15,7 @@ describe('Transformers', () => {
     it('should transform object to array', () => {
       const row = { id: 1, name: 'John', age: 30 };
       const result = transformRowToArray(row);
-      
+
       expect(result).toEqual([1, 'John', 30]);
     });
 
@@ -29,8 +29,21 @@ describe('Transformers', () => {
     it('should handle empty object', () => {
       const row = {};
       const result = transformRowToArray(row);
-      
+
       expect(result).toEqual([]);
+    });
+
+    it('should use schema to ensure column order', () => {
+      const row = { name: 'John', age: 30, id: 1 };
+      const schema = [
+        { name: 'id', type: 'INTEGER' as const },
+        { name: 'name', type: 'STRING' as const },
+        { name: 'age', type: 'INTEGER' as const }
+      ];
+
+      const result = transformRowToArray(row, schema);
+
+      expect(result).toEqual([1, 'John', 30]);
     });
   });
 

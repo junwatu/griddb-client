@@ -83,12 +83,18 @@ describe('CRUDOperations', () => {
   });
 
   describe('insert', () => {
+    const schema = [
+      { name: 'id', type: 'INTEGER' as const },
+      { name: 'name', type: 'STRING' as const }
+    ];
+
     it('should insert single row', async () => {
       mockClient.request.mockResolvedValue({ success: true });
 
       await crud.insert({
         containerName: 'users',
-        data: { id: 1, name: 'John' }
+        data: { name: 'John', id: 1 },
+        schema
       });
 
       expect(mockClient.request).toHaveBeenCalledWith(
@@ -106,9 +112,10 @@ describe('CRUDOperations', () => {
       await crud.insert({
         containerName: 'users',
         data: [
-          { id: 1, name: 'John' },
-          { id: 2, name: 'Jane' }
-        ]
+          { name: 'John', id: 1 },
+          { name: 'Jane', id: 2 }
+        ],
+        schema
       });
 
       expect(mockClient.request).toHaveBeenCalledWith(
@@ -125,8 +132,9 @@ describe('CRUDOperations', () => {
 
       await crud.insert({
         containerName: 'users',
-        data: { id: 1, name: 'John' },
-        updateIfExists: true
+        data: { name: 'John', id: 1 },
+        updateIfExists: true,
+        schema
       });
 
       expect(mockClient.request).toHaveBeenCalledWith(
@@ -135,6 +143,42 @@ describe('CRUDOperations', () => {
           method: 'PUT'
         })
       );
+    });
+
+    it('should handle mixed object and array data', async () => {
+      mockClient.request.mockResolvedValue({ success: true });
+
+      await crud.insert({
+        containerName: 'users',
+        data: [
+          { name: 'John', id: 1 },
+          [2, 'Jane']
+        ],
+        schema
+      });
+
+      expect(mockClient.request).toHaveBeenCalledWith(
+        '/containers/users/rows',
+        expect.objectContaining({
+          body: [[1, 'John'], [2, 'Jane']]
+        })
+      );
+    });
+
+    it('should cache container schema', async () => {
+      const schemaInfo = {
+        container_name: 'users',
+        container_type: 'COLLECTION',
+        rowkey: true,
+        columns: schema
+      };
+      mockClient.request.mockResolvedValue({ success: true });
+      mockClient.getContainerInfo.mockResolvedValue(schemaInfo);
+
+      await crud.insert({ containerName: 'users', data: { id: 1, name: 'John' } });
+      await crud.insert({ containerName: 'users', data: { id: 2, name: 'Jane' } });
+
+      expect(mockClient.getContainerInfo).toHaveBeenCalledTimes(1);
     });
   });
 

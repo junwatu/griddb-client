@@ -233,7 +233,13 @@ describe('Error Handling', () => {
   describe('Edge Cases', () => {
     it('should handle very large batch sizes', async () => {
       const mockClient = {
-        request: vi.fn().mockResolvedValue({ success: true })
+        request: vi.fn().mockResolvedValue({ success: true }),
+        getContainerInfo: vi.fn().mockResolvedValue({
+          container_name: 'test',
+          container_type: 'COLLECTION',
+          rowkey: true,
+          columns: [{ name: 'id', type: 'INTEGER' as const }]
+        })
       };
       const crud = new CRUDOperations(mockClient as any);
 
