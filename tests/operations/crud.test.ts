@@ -100,7 +100,7 @@ describe('CRUDOperations', () => {
       expect(mockClient.request).toHaveBeenCalledWith(
         '/containers/users/rows',
         expect.objectContaining({
-          method: 'POST',
+          method: 'PUT',
           body: [[1, 'John']]
         })
       );
@@ -121,7 +121,7 @@ describe('CRUDOperations', () => {
       expect(mockClient.request).toHaveBeenCalledWith(
         '/containers/users/rows',
         expect.objectContaining({
-          method: 'POST',
+          method: 'PUT',
           body: [[1, 'John'], [2, 'Jane']]
         })
       );
@@ -448,7 +448,7 @@ describe('CRUDOperations', () => {
       expect(mockClient.request).toHaveBeenCalledWith(
         '/containers/users/rows',
         expect.objectContaining({
-          method: 'POST'
+          method: 'PUT'
         })
       );
     });
