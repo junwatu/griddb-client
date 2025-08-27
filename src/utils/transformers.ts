@@ -2,22 +2,37 @@
  * Data transformation utilities for GridDB
  */
 
-import { GridDBRow, GridDBValue, SelectOptions, GridDBQuery } from '../types';
+import {
+  GridDBRow,
+  GridDBValue,
+  SelectOptions,
+  GridDBQuery,
+  GridDBColumn
+} from '../types';
 
 /**
  * Transform object row to array format for GridDB
  */
-export function transformRowToArray(row: any): any[] {
+export function transformRowToArray(
+  row: any,
+  containerSchema?: GridDBColumn[]
+): any[] {
   if (!row) {
     return [];
   }
-  
+
   if (Array.isArray(row)) {
     return row;
   }
-  
-  // If object, convert to array based on property order
-  return Object.values(row);
+
+  if (containerSchema && containerSchema.length > 0) {
+    return containerSchema.map(column => toGridDBValue(row[column.name]));
+  }
+
+  console.warn(
+    'GridDB Client: No schema provided for transformRowToArray. Column order may be incorrect.'
+  );
+  return Object.values(row).map(toGridDBValue);
 }
 
 /**

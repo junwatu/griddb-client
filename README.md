@@ -140,18 +140,27 @@ console.log(containers); // ['users', 'products', ...]
 #### Insert
 
 ```typescript
-// Single insert
+// Object-based insert (property order doesn't matter)
 await griddb.insert({
   containerName: 'users',
-  data: { id: 1, name: 'Alice', email: 'alice@example.com' }
+  data: { name: 'Alice', email: 'alice@example.com', id: 1 }
 });
 
-// Multiple insert
+// Multiple insert with objects
 await griddb.insert({
   containerName: 'users',
   data: [
-    { id: 2, name: 'Bob', email: 'bob@example.com' },
-    { id: 3, name: 'Charlie', email: 'charlie@example.com' }
+    { name: 'Bob', email: 'bob@example.com', id: 2 },
+    { name: 'Charlie', email: 'charlie@example.com', id: 3 }
+  ]
+});
+
+// Mixed object and array data
+await griddb.insert({
+  containerName: 'users',
+  data: [
+    { name: 'Dave', email: 'dave@example.com', id: 4 },
+    [5, 'Eve', 'eve@example.com'] // Arrays must follow column order
   ]
 });
 

@@ -123,6 +123,7 @@ export interface InsertOptions<T = any> {
   containerName: string;
   data: T | T[];
   updateIfExists?: boolean;
+  schema?: GridDBColumn[];
 }
 
 export interface UpdateOptions<T = any> {
