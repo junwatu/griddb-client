@@ -26,7 +26,10 @@ export function transformRowToArray(
   }
 
   if (containerSchema && containerSchema.length > 0) {
-    return containerSchema.map(column => toGridDBValue(row[column.name]));
+    return containerSchema.map(column => {
+      const value = row[column.name];
+      return convertToGridDBType(value, column.type);
+    });
   }
 
   console.warn(
@@ -100,6 +103,49 @@ export function buildSelectQuery(options: SelectOptions): GridDBQuery {
     stmt,
     bindings
   };
+}
+
+/**
+ * Convert value to specific GridDB type
+ */
+export function convertToGridDBType(value: any, columnType: string): any {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  switch (columnType.toUpperCase()) {
+    case 'INTEGER':
+      return typeof value === 'number' ? Math.floor(value) : parseInt(String(value), 10);
+    
+    case 'LONG':
+      return typeof value === 'number' ? Math.floor(value) : parseInt(String(value), 10);
+    
+    case 'DOUBLE':
+    case 'FLOAT':
+      return typeof value === 'number' ? value : parseFloat(String(value));
+    
+    case 'STRING':
+      return String(value);
+    
+    case 'BOOL':
+    case 'BOOLEAN':
+      return Boolean(value);
+    
+    case 'TIMESTAMP':
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? null : value.toISOString();
+      }
+      return new Date(value).toISOString();
+    
+    case 'BLOB':
+      if (value instanceof Buffer) {
+        return value.toString('base64');
+      }
+      return value;
+    
+    default:
+      return toGridDBValue(value);
+  }
 }
 
 /**

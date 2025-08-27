@@ -65,14 +65,14 @@ export class CRUDOperations {
    * Insert data into container
    */
   async insert<T = GridDBRow>(options: InsertOptions<T>): Promise<void> {
-    const { containerName, data, updateIfExists = false, schema } = options;
+    const { containerName, data, schema } = options;
 
     const columns = schema || (await this.getContainerSchema(containerName));
     const rows = Array.isArray(data) ? data : [data];
     const transformedRows = rows.map(row => transformRowToArray(row, columns));
 
-    // Use POST for insert, PUT for update
-    const method = updateIfExists ? 'PUT' : 'POST';
+    // Use PUT for insert (GridDB Web API expects PUT for row insertion)
+    const method = 'PUT';
     await this.client.request(`/containers/${containerName}/rows`, {
       method,
       body: transformedRows
