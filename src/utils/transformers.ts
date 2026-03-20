@@ -114,37 +114,37 @@ export function convertToGridDBType(value: any, columnType: string): any {
   }
 
   switch (columnType.toUpperCase()) {
-    case 'INTEGER':
-      return typeof value === 'number' ? Math.floor(value) : parseInt(String(value), 10);
+  case 'INTEGER':
+    return typeof value === 'number' ? Math.floor(value) : parseInt(String(value), 10);
     
-    case 'LONG':
-      return typeof value === 'number' ? Math.floor(value) : parseInt(String(value), 10);
+  case 'LONG':
+    return typeof value === 'number' ? Math.floor(value) : parseInt(String(value), 10);
     
-    case 'DOUBLE':
-    case 'FLOAT':
-      return typeof value === 'number' ? value : parseFloat(String(value));
+  case 'DOUBLE':
+  case 'FLOAT':
+    return typeof value === 'number' ? value : parseFloat(String(value));
     
-    case 'STRING':
-      return String(value);
+  case 'STRING':
+    return String(value);
     
-    case 'BOOL':
-    case 'BOOLEAN':
-      return Boolean(value);
+  case 'BOOL':
+  case 'BOOLEAN':
+    return Boolean(value);
     
-    case 'TIMESTAMP':
-      if (value instanceof Date) {
-        return isNaN(value.getTime()) ? null : value.toISOString();
-      }
-      return new Date(value).toISOString();
+  case 'TIMESTAMP':
+    if (value instanceof Date) {
+      return isNaN(value.getTime()) ? null : value.toISOString();
+    }
+    return new Date(value).toISOString();
     
-    case 'BLOB':
-      if (value instanceof Buffer) {
-        return value.toString('base64');
-      }
-      return value;
+  case 'BLOB':
+    if (value instanceof Buffer) {
+      return value.toString('base64');
+    }
+    return value;
     
-    default:
-      return toGridDBValue(value);
+  default:
+    return toGridDBValue(value);
   }
 }
 

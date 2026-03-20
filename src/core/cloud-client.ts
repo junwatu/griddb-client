@@ -174,7 +174,7 @@ export class GridDBCloudClient extends GridDBClient {
     try {
       const response = await this.get('/health');
       return response as any;
-    } catch (error) {
+    } catch {
       return {
         status: 'down',
         services: {},
