@@ -96,6 +96,10 @@ export class GridDB {
     return this.crud.executeSql(stmt, bindings);
   }
 
+  async executeDml(stmt: string, bindings?: any[]): Promise<any> {
+    return this.crud.executeDml(stmt, bindings);
+  }
+
   async executeTql(containerName: string, query: string): Promise<any[]> {
     return this.crud.executeTql(containerName, query);
   }
