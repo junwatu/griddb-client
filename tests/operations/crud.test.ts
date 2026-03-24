@@ -290,8 +290,8 @@ describe('CRUDOperations', () => {
       );
     });
 
-    it('should update with where clause', async () => {
-      mockClient.post.mockResolvedValue([{ results: [[1]] }]);
+    it('should update with where clause using DML endpoint', async () => {
+      mockClient.post.mockResolvedValue([{ updatedRows: 1 }]);
 
       await crud.update({
         containerName: 'users',
@@ -301,10 +301,10 @@ describe('CRUDOperations', () => {
       });
 
       expect(mockClient.post).toHaveBeenCalledWith(
-        '/sql/dml/query',
+        '/sql/update',
         expect.arrayContaining([
           expect.objectContaining({
-            type: 'sql-select',
+            type: 'sql-update',
             stmt: expect.stringContaining('UPDATE users SET status = ? WHERE id = ?'),
             bindings: ['active', 1]
           })
@@ -314,8 +314,8 @@ describe('CRUDOperations', () => {
   });
 
   describe('delete', () => {
-    it('should delete with where clause', async () => {
-      mockClient.post.mockResolvedValue([{ results: [] }]);
+    it('should delete with where clause using DML endpoint', async () => {
+      mockClient.post.mockResolvedValue([{ updatedRows: 1 }]);
 
       await crud.delete({
         containerName: 'users',
@@ -324,15 +324,38 @@ describe('CRUDOperations', () => {
       });
 
       expect(mockClient.post).toHaveBeenCalledWith(
-        '/sql/dml/query',
+        '/sql/update',
         expect.arrayContaining([
           expect.objectContaining({
-            type: 'sql-select',
+            type: 'sql-update',
             stmt: 'DELETE FROM users WHERE id = ?',
             bindings: [1]
           })
         ])
       );
+    });
+
+    it('should delete without bindings', async () => {
+      mockClient.post.mockResolvedValue([{ updatedRows: 5 }]);
+
+      await crud.delete({
+        containerName: 'users',
+        where: 'status = \'inactive\''
+      });
+
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/sql/update',
+        expect.arrayContaining([
+          expect.objectContaining({
+            type: 'sql-update',
+            stmt: 'DELETE FROM users WHERE status = \'inactive\''
+          })
+        ])
+      );
+
+      // Verify bindings is NOT included when not provided
+      const callArgs = mockClient.post.mock.calls[0][1][0];
+      expect(callArgs).not.toHaveProperty('bindings');
     });
   });
 
@@ -455,8 +478,8 @@ describe('CRUDOperations', () => {
 
     it('should update if exists', async () => {
       mockClient.post
-        .mockResolvedValueOnce([{ results: [[1]] }]) // count returns 1
-        .mockResolvedValueOnce({ success: true });
+        .mockResolvedValueOnce([{ results: [[1]] }]) // count returns 1 (via executeSql -> /sql/dml/query)
+        .mockResolvedValueOnce([{ updatedRows: 1 }]); // update (via executeDml -> /sql/update)
 
       await crud.upsert(
         'users',
@@ -465,22 +488,95 @@ describe('CRUDOperations', () => {
       );
 
       expect(mockClient.post).toHaveBeenCalledTimes(2);
+      // Second call should be to the DML update endpoint
+      expect(mockClient.post).toHaveBeenLastCalledWith(
+        '/sql/update',
+        expect.arrayContaining([
+          expect.objectContaining({
+            type: 'sql-update',
+            stmt: expect.stringContaining('UPDATE users SET')
+          })
+        ])
+      );
     });
   });
 
   describe('truncate', () => {
-    it('should delete all rows from container', async () => {
-      mockClient.post.mockResolvedValue([{ results: [] }]);
+    it('should delete all rows using DML endpoint', async () => {
+      mockClient.post.mockResolvedValue([{ updatedRows: 100 }]);
 
       await crud.truncate('users');
 
       expect(mockClient.post).toHaveBeenCalledWith(
-        '/sql/dml/query',
+        '/sql/update',
         expect.arrayContaining([
           expect.objectContaining({
+            type: 'sql-update',
             stmt: 'DELETE FROM users'
           })
         ])
+      );
+    });
+  });
+
+  describe('executeDml', () => {
+    it('should use sql-update type and /sql/update endpoint', async () => {
+      mockClient.post.mockResolvedValue([{ updatedRows: 1 }]);
+
+      await crud.executeDml('DELETE FROM users WHERE id = 1');
+
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/sql/update',
+        [{ type: 'sql-update', stmt: 'DELETE FROM users WHERE id = 1' }]
+      );
+    });
+
+    it('should include bindings when provided', async () => {
+      mockClient.post.mockResolvedValue([{ updatedRows: 1 }]);
+
+      await crud.executeDml('DELETE FROM users WHERE id = ?', [1]);
+
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/sql/update',
+        [{ type: 'sql-update', stmt: 'DELETE FROM users WHERE id = ?', bindings: [1] }]
+      );
+    });
+
+    it('should omit bindings when not provided', async () => {
+      mockClient.post.mockResolvedValue([{ updatedRows: 0 }]);
+
+      await crud.executeDml('DELETE FROM users WHERE id = 999');
+
+      const callArgs = mockClient.post.mock.calls[0][1][0];
+      expect(callArgs).not.toHaveProperty('bindings');
+    });
+  });
+
+  describe('executeSql', () => {
+    it('should omit bindings when not provided', async () => {
+      mockClient.post.mockResolvedValue([{
+        columns: [{ name: 'count', type: 'LONG' }],
+        results: [[5]]
+      }]);
+
+      await crud.executeSql('SELECT COUNT(*) FROM users');
+
+      const callArgs = mockClient.post.mock.calls[0][1][0];
+      expect(callArgs).not.toHaveProperty('bindings');
+      expect(callArgs.type).toBe('sql-select');
+    });
+
+    it('should include bindings when provided', async () => {
+      mockClient.post.mockResolvedValue([{
+        columns: [{ name: 'id', type: 'INTEGER' }],
+        results: [[1]]
+      }]);
+
+      await crud.executeSql('SELECT * FROM users WHERE id = ?', [1]);
+
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/sql/dml/query',
+        [{ type: 'sql-select', stmt: 'SELECT * FROM users WHERE id = ?', bindings: [1] }]
       );
     });
   });

@@ -120,7 +120,7 @@ export class CRUDOperations {
    */
   async update<T = GridDBRow>(options: UpdateOptions<T>): Promise<void> {
     const { containerName, data, where, bindings } = options;
-    
+
     if (!where) {
       // If no where clause, update by rowkey (first column)
       await this.insert({
@@ -129,15 +129,15 @@ export class CRUDOperations {
         updateIfExists: true
       });
     } else {
-      // Use SQL UPDATE statement
+      // Use SQL UPDATE statement via DML endpoint
       const columns = Object.keys(data as any);
       const setClause = columns.map(col => `${col} = ?`).join(', ');
       const values = columns.map(col => (data as any)[col]);
-      
+
       const stmt = `UPDATE ${containerName} SET ${setClause} WHERE ${where}`;
       const allBindings = [...values, ...(bindings || [])];
-      
-      await this.executeSql(stmt, allBindings);
+
+      await this.executeDml(stmt, allBindings);
     }
   }
 
@@ -146,9 +146,9 @@ export class CRUDOperations {
    */
   async delete(options: DeleteOptions): Promise<void> {
     const { containerName, where, bindings } = options;
-    
+
     const stmt = `DELETE FROM ${containerName} WHERE ${where}`;
-    await this.executeSql(stmt, bindings);
+    await this.executeDml(stmt, bindings);
   }
 
   /**
@@ -188,26 +188,57 @@ export class CRUDOperations {
   }
 
   /**
-   * Execute raw SQL query
+   * Execute raw SQL SELECT query
    */
   async executeSql(stmt: string, bindings?: any[]): Promise<QueryResult> {
     const query: GridDBQuery = {
       type: 'sql-select',
       stmt,
-      bindings
     };
 
+    // Only include bindings if provided and non-empty
+    // GridDB Cloud Web API rejects requests with undefined/empty bindings
+    if (bindings && bindings.length > 0) {
+      query.bindings = bindings;
+    }
+
     const response = await this.client.post('/sql/dml/query', [query]);
-    
+
     // Handle response format
     if (Array.isArray(response) && response.length > 0) {
       return response[0];
     }
-    
+
     return {
       columns: [],
       results: []
     };
+  }
+
+  /**
+   * Execute SQL DML statement (INSERT, UPDATE, DELETE)
+   * Uses the /sql/update endpoint with type 'sql-update'
+   * which is required by GridDB Cloud Web API for DML operations
+   */
+  async executeDml(stmt: string, bindings?: any[]): Promise<any> {
+    const query: GridDBQuery = {
+      type: 'sql-update',
+      stmt,
+    };
+
+    // Only include bindings if provided and non-empty
+    if (bindings && bindings.length > 0) {
+      query.bindings = bindings;
+    }
+
+    const response = await this.client.post('/sql/update', [query]);
+
+    // Handle response format
+    if (Array.isArray(response) && response.length > 0) {
+      return response[0];
+    }
+
+    return {};
   }
 
   /**
@@ -250,7 +281,7 @@ export class CRUDOperations {
    * Truncate container (delete all rows)
    */
   async truncate(containerName: string): Promise<void> {
-    await this.executeSql(`DELETE FROM ${containerName}`);
+    await this.executeDml(`DELETE FROM ${containerName}`);
   }
 
   /**

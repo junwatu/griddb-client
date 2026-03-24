@@ -57,7 +57,7 @@ export interface GridDBRow {
 
 // Query types
 export interface GridDBQuery {
-  type: 'sql-select' | 'tql';
+  type: 'sql-select' | 'sql-update' | 'tql';
   stmt: string;
   bindings?: GridDBValue[];
 }
