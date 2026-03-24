@@ -87,6 +87,29 @@ console.log(users);
 
 ## API Documentation
 
+### API Overview
+
+| Method | Description |
+|--------|-------------|
+| `createContainer(options)` | Create a new container |
+| `dropContainer(name)` | Drop a container |
+| `listContainers()` | List all containers |
+| `containerExists(name)` | Check if container exists |
+| `getSchema(name)` | Get container schema |
+| `insert(options)` | Insert one or more rows |
+| `batchInsert(name, data, batchSize)` | Batch insert with error handling |
+| `select(options)` | Query rows with conditions |
+| `selectOne(options)` | Query a single row |
+| `count(name, where?, bindings?)` | Count rows |
+| `exists(name, where, bindings?)` | Check if rows exist |
+| `update(options)` | Update rows (by rowkey or WHERE clause) |
+| `delete(options)` | Delete rows by condition |
+| `truncate(name)` | Delete all rows from container |
+| `upsert(name, data, uniqueColumns)` | Insert or update |
+| `executeSql(stmt, bindings?)` | Execute raw SELECT query |
+| `executeDml(stmt, bindings?)` | Execute raw DML (INSERT/UPDATE/DELETE) |
+| `executeTql(name, query)` | Execute TQL query |
+
 ### Initialization
 
 ```typescript
@@ -233,9 +256,18 @@ await griddb.upsert(
 );
 ```
 
+#### Truncate
+
+```typescript
+// Delete all rows from a container
+await griddb.truncate('users');
+```
+
 ### Query Execution
 
-#### SQL Queries
+#### SQL Queries (SELECT)
+
+Use `executeSql` for read-only SELECT queries. This sends `type: 'sql-select'` to the `/sql/dml/query` endpoint.
 
 ```typescript
 const result = await griddb.executeSql(
@@ -244,6 +276,27 @@ const result = await griddb.executeSql(
 );
 console.log(result.results);
 ```
+
+#### SQL DML Statements (INSERT, UPDATE, DELETE)
+
+Use `executeDml` for data modification statements. This sends `type: 'sql-update'` to the `/sql/update` endpoint, which is required by GridDB Cloud Web API for DML operations.
+
+```typescript
+// Delete with raw SQL
+const result = await griddb.executeDml(
+  'DELETE FROM users WHERE status = ?',
+  ['inactive']
+);
+console.log(result.updatedRows);
+
+// Update with raw SQL
+await griddb.executeDml(
+  'UPDATE users SET status = ? WHERE last_login < ?',
+  ['inactive', '2023-01-01']
+);
+```
+
+> **Note:** The high-level `delete()`, `update()`, and `truncate()` methods use `executeDml` internally. You only need `executeDml` directly for complex DML statements not covered by the convenience methods.
 
 #### TQL Queries
 
@@ -368,6 +421,7 @@ import {
   GridDBConfig,
   GridDBColumn,
   GridDBRow,
+  GridDBQuery,
   ContainerType,
   GridDBColumnType,
   CreateOptions,
@@ -378,6 +432,43 @@ import {
   QueryResult,
   BatchOperationResult
 } from '@junwatu/griddb-client';
+```
+
+### GridDBQuery Type
+
+```typescript
+interface GridDBQuery {
+  type: 'sql-select' | 'sql-update' | 'tql';
+  stmt: string;
+  bindings?: GridDBValue[];
+}
+```
+
+- `sql-select` — Used for SELECT queries via `/sql/dml/query`
+- `sql-update` — Used for DML statements (INSERT, UPDATE, DELETE) via `/sql/update`
+- `tql` — Used for TQL queries
+
+## GridDB Cloud
+
+This library fully supports [GridDB Cloud](https://cloud.griddb.com). GridDB Cloud's Web API strictly separates SELECT queries from DML (data modification) operations at the endpoint level:
+
+| Operation | API Type | Endpoint |
+|-----------|----------|----------|
+| SELECT, COUNT | `sql-select` | `/sql/dml/query` |
+| INSERT, UPDATE, DELETE | `sql-update` | `/sql/update` |
+
+The library handles this automatically — `select()`, `selectOne()`, `count()` use the SELECT endpoint, while `delete()`, `update()` (with WHERE clause), and `truncate()` use the DML endpoint.
+
+> **Tip:** Make sure your IP address is added to the GridDB Cloud allowlist, otherwise all requests will return `403 Forbidden`.
+
+### GridDB Cloud Configuration
+
+```typescript
+const griddb = new GridDB({
+  griddbWebApiUrl: 'https://cloud1.griddb.com/trial1234/griddb/v2/gs_clustertrial1234/dbs/public',
+  username: 'your_username',
+  password: 'your_password'
+});
 ```
 
 ## Environment Variables
