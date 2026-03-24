@@ -221,28 +221,35 @@ const user = await griddb.selectOne({
 #### Update
 
 ```typescript
-// Update by primary key
+// Update by primary key (upsert via rowkey — recommended)
 await griddb.update({
   containerName: 'users',
   data: { id: 1, name: 'Alice Updated', email: 'alice.new@example.com' }
 });
 
-// Update with conditions
+// Update with WHERE clause
 await griddb.update({
   containerName: 'users',
   data: { status: 'inactive' },
-  where: 'last_login < ?',
-  bindings: ['2023-01-01']
+  where: `last_login < '2023-01-01'`
 });
 ```
+
+> **Note:** When no `where` clause is provided, update uses the Row API (PUT) which upserts by rowkey. When a `where` clause is provided, it uses SQL UPDATE via the DML endpoint. For GridDB Cloud, prefer inline values in the WHERE clause over parameterized `bindings`.
 
 #### Delete
 
 ```typescript
+// Delete by ID
 await griddb.delete({
   containerName: 'users',
-  where: 'id = ?',
-  bindings: [1]
+  where: 'id = 1'
+});
+
+// Delete with condition
+await griddb.delete({
+  containerName: 'users',
+  where: `status = 'inactive'`
 });
 ```
 
